@@ -217,11 +217,11 @@ const InventoryManagement: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in-stock': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'low-stock': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'out-of-stock': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'expired': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'in-stock': return 'bg-green-100 text-green-800';
+      case 'low-stock': return 'bg-yellow-100 text-yellow-800';
+      case 'out-of-stock': return 'bg-red-100 text-red-800';
+      case 'expired': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -245,8 +245,8 @@ const InventoryManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventory Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track stock levels and manage suppliers</p>
+          <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
+          <p className="text-gray-600">Track stock levels and manage suppliers</p>
         </div>
         <button onClick={() => setIsAddModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors">
           <Plus className="h-4 w-4" />
@@ -256,44 +256,44 @@ const InventoryManagement: React.FC = () => {
 
       {/* Alert Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="flex items-center gap-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <TrendingDown className="h-5 w-5 text-yellow-600" />
           <div>
-            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Low Stock Items</p>
-            <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">{lowStockCount}</p>
+            <p className="text-sm font-medium text-yellow-800">Low Stock Items</p>
+            <p className="text-2xl font-bold text-yellow-900">{lowStockCount}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
           <TrendingDown className="h-5 w-5 text-red-600" />
           <div>
-            <p className="text-sm font-medium text-red-800 dark:text-red-400">Out of Stock</p>
-            <p className="text-2xl font-bold text-red-900 dark:text-red-300">{outOfStockCount}</p>
+            <p className="text-sm font-medium text-red-800">Out of Stock</p>
+            <p className="text-2xl font-bold text-red-900">{outOfStockCount}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+        <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-lg p-4">
           <Calendar className="h-5 w-5 text-purple-600" />
           <div>
-            <p className="text-sm font-medium text-purple-800 dark:text-purple-400">Expired Items</p>
-            <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">{expiredCount}</p>
+            <p className="text-sm font-medium text-purple-800">Expired Items</p>
+            <p className="text-2xl font-bold text-purple-900">{expiredCount}</p>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col lg:flex-row gap-4 flex-wrap">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <input type="text" placeholder="Search inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white" />
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-900" />
           </div>
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full sm:w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+            className="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-900">
             <option value="all">All Categories</option>
             {categories.map(category => <option key={category} value={category}>{category}</option>)}
           </select>
           <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full sm:w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+            className="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-900">
             <option value="all">All Status</option>
             <option value="in-stock">In Stock</option>
             <option value="low-stock">Low Stock</option>
@@ -304,9 +304,9 @@ const InventoryManagement: React.FC = () => {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
         <table className="min-w-[700px] w-full">
-          <thead className="bg-gray-100 dark:bg-gray-700">
+          <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 text-left cursor-pointer" onClick={() => requestSort('name')}>Name <ArrowUpDown className="inline w-3 h-3" /></th>
               <th className="px-4 py-2 text-left cursor-pointer" onClick={() => requestSort('category')}>Category <ArrowUpDown className="inline w-3 h-3" /></th>
@@ -317,14 +317,14 @@ const InventoryManagement: React.FC = () => {
           </thead>
           <tbody>
             {sortedInventory.map(item => (
-              <tr key={item.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900">
+              <tr key={item.id} className="border-t border-gray-200 hover:bg-gray-50">
                 <td className="px-4 py-2">{item.name}</td>
                 <td className="px-4 py-2">{item.category}</td>
                 <td className="px-4 py-2">
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className={`h-2 rounded-full ${getStockBarColor(item.status)}`} style={{ width: `${getStockPercentage(item.currentStock, item.maxStock)}%` }} />
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">{item.currentStock}/{item.maxStock} {item.unit}</span>
+                  <span className="text-sm text-gray-500">{item.currentStock}/{item.maxStock} {item.unit}</span>
                 </td>
                 <td className="px-4 py-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(item.status)}`}>
@@ -332,10 +332,10 @@ const InventoryManagement: React.FC = () => {
                   </span>
                 </td>
                 <td className="px-4 py-2 flex items-center gap-2">
-                  <button onClick={() => { setEditingItem(item); setIsEditModalOpen(true); }} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <button onClick={() => { setEditingItem(item); setIsEditModalOpen(true); }} className="p-1 rounded hover:bg-gray-200">
                     <EditIcon className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDeleteItem(item.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <button onClick={() => handleDeleteItem(item.id)} className="p-1 rounded hover:bg-gray-200">
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                   <button onClick={() => handleStockChange(item.id, 1)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">+1</button>
@@ -350,26 +350,34 @@ const InventoryManagement: React.FC = () => {
       {/* Add/Edit Modals */}
       {isAddModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Add Item</h2>
-              <button onClick={() => setIsAddModalOpen(false)}><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-semibold text-gray-900">Add Inventory Item</h2>
+              <button onClick={() => setIsAddModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
-            <div className="space-y-4">
-              {/* Input fields */}
-              <input type="text" placeholder="Item Name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <select value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
+            <div className="space-y-3">
+              <input type="text" placeholder="Name" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <select value={newItem.category} onChange={e => setNewItem({...newItem, category: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
                 <option value="">Select Category</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-              <input type="number" placeholder="Current Stock" value={newItem.currentStock} onChange={e => setNewItem({ ...newItem, currentStock: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Min Stock" value={newItem.minStock} onChange={e => setNewItem({ ...newItem, minStock: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Max Stock" value={newItem.maxStock} onChange={e => setNewItem({ ...newItem, maxStock: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="text" placeholder="Unit" value={newItem.unit} onChange={e => setNewItem({ ...newItem, unit: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Cost per Unit" value={newItem.costPerUnit} onChange={e => setNewItem({ ...newItem, costPerUnit: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="text" placeholder="Supplier" value={newItem.supplier} onChange={e => setNewItem({ ...newItem, supplier: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="date" placeholder="Expiry Date" value={newItem.expiryDate} onChange={e => setNewItem({ ...newItem, expiryDate: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <button onClick={handleAddItem} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg">Add Item</button>
+              <input type="number" placeholder="Current Stock" value={newItem.currentStock} onChange={e => setNewItem({...newItem, currentStock: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Minimum Stock" value={newItem.minStock} onChange={e => setNewItem({...newItem, minStock: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Maximum Stock" value={newItem.maxStock} onChange={e => setNewItem({...newItem, maxStock: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="text" placeholder="Unit" value={newItem.unit} onChange={e => setNewItem({...newItem, unit: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Cost per Unit" value={newItem.costPerUnit} onChange={e => setNewItem({...newItem, costPerUnit: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="text" placeholder="Supplier" value={newItem.supplier} onChange={e => setNewItem({...newItem, supplier: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="date" placeholder="Expiry Date" value={newItem.expiryDate} onChange={e => setNewItem({...newItem, expiryDate: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <button onClick={handleAddItem} className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold">Add Item</button>
             </div>
           </div>
         </div>
@@ -377,30 +385,38 @@ const InventoryManagement: React.FC = () => {
 
       {isEditModalOpen && editingItem && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Edit Item</h2>
-              <button onClick={() => setIsEditModalOpen(false)}><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-semibold text-gray-900">Edit Inventory Item</h2>
+              <button onClick={() => { setIsEditModalOpen(false); setEditingItem(null); }}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
-            <div className="space-y-4">
-              {/* Input fields */}
-              <input type="text" placeholder="Item Name" value={editingItem.name} onChange={e => setEditingItem({ ...editingItem, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <select value={editingItem.category} onChange={e => setEditingItem({ ...editingItem, category: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            <div className="space-y-3">
+              <input type="text" placeholder="Name" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <select value={editingItem.category} onChange={e => setEditingItem({...editingItem, category: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
+                <option value="">Select Category</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-              <input type="number" placeholder="Current Stock" value={editingItem.currentStock} onChange={e => setEditingItem({ ...editingItem, currentStock: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Min Stock" value={editingItem.minStock} onChange={e => setEditingItem({ ...editingItem, minStock: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Max Stock" value={editingItem.maxStock} onChange={e => setEditingItem({ ...editingItem, maxStock: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="text" placeholder="Unit" value={editingItem.unit} onChange={e => setEditingItem({ ...editingItem, unit: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="number" placeholder="Cost per Unit" value={editingItem.costPerUnit} onChange={e => setEditingItem({ ...editingItem, costPerUnit: parseFloat(e.target.value) })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="text" placeholder="Supplier" value={editingItem.supplier} onChange={e => setEditingItem({ ...editingItem, supplier: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <input type="date" placeholder="Expiry Date" value={editingItem.expiryDate || ''} onChange={e => setEditingItem({ ...editingItem, expiryDate: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-              <button onClick={handleEditItem} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg">Save Changes</button>
+              <input type="number" placeholder="Current Stock" value={editingItem.currentStock} onChange={e => setEditingItem({...editingItem, currentStock: parseInt(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Minimum Stock" value={editingItem.minStock} onChange={e => setEditingItem({...editingItem, minStock: parseInt(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Maximum Stock" value={editingItem.maxStock} onChange={e => setEditingItem({...editingItem, maxStock: parseInt(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="text" placeholder="Unit" value={editingItem.unit} onChange={e => setEditingItem({...editingItem, unit: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="number" placeholder="Cost per Unit" value={editingItem.costPerUnit} onChange={e => setEditingItem({...editingItem, costPerUnit: parseFloat(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="text" placeholder="Supplier" value={editingItem.supplier} onChange={e => setEditingItem({...editingItem, supplier: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <input type="date" placeholder="Expiry Date" value={editingItem.expiryDate || ''} onChange={e => setEditingItem({...editingItem, expiryDate: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900" />
+              <button onClick={handleEditItem} className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold">Save Changes</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

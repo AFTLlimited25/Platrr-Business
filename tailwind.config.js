@@ -4,5 +4,6 @@ export default {
   theme: {
     extend: {},
   },
+  darkMode: false, // 👈 disable dark mode completely
   plugins: [],
 };

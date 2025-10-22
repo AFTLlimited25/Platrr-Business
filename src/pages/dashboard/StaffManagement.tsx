@@ -1,11 +1,21 @@
-// src/pages/staff/StaffManagement.tsx
-import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Plus, Search, CreditCard as EditIcon, Trash2, Copy } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Plus, Search, Edit3 as EditIcon, Trash2, X } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase';
-import { collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore';
 
+// -------------------- Types --------------------
 interface Staff {
   id: string;
   employeeId: string;
@@ -19,30 +29,92 @@ interface Staff {
   avatar?: string;
 }
 
+// -------------------- Input Component --------------------
+const Input = React.memo(function Input({
+  label,
+  value,
+  onChange,
+  type = 'text',
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  type?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      />
+    </div>
+  );
+});
+
+// -------------------- Modal Wrapper --------------------
+const Modal = ({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 animate-fadeIn">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+// -------------------- Main Component --------------------
 const StaffManagement: React.FC = () => {
   const { success, error } = useToast();
   const { currentUser } = useAuth();
 
-  // UI state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [selectedRole, setSelectedRole] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Data state
   const [staffList, setStaffList] = useState<Staff[]>([]);
-  const [newStaff, setNewStaff] = useState({ name: '', email: '', phone: '', role: '', address: '' });
+  const [newStaff, setNewStaff] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    address: '',
+  });
   const [editStaff, setEditStaff] = useState<Staff>({
-    id: '', employeeId: '', name: '', email: '', phone: '', role: '', status: 'active', address: '', joinDate: ''
+    id: '',
+    employeeId: '',
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    status: 'active',
+    address: '',
+    joinDate: '',
   });
 
   const roles = ['Head Chef', 'Cook', 'Server', 'Manager', 'Cleaner'];
 
-  // Generate unique employee ID
+  // -------------------- Generate Unique Employee ID --------------------
   const generateUniqueEmployeeId = (): string => {
-    const existing = new Set(staffList.map(s => s.employeeId));
+    const existing = new Set(staffList.map((s) => s.employeeId));
     for (let i = 0; i < 1000; i++) {
       const randomNum = Math.floor(Math.random() * 90000) + 10000;
       const id = `PLA${randomNum}`;
@@ -51,7 +123,7 @@ const StaffManagement: React.FC = () => {
     return `PLA${Date.now().toString().slice(-5)}`;
   };
 
-  // Firestore subscription
+  // -------------------- Firestore Listener --------------------
   useEffect(() => {
     if (!currentUser) {
       setStaffList([]);
@@ -59,33 +131,51 @@ const StaffManagement: React.FC = () => {
     }
     const staffCol = collection(db, 'users', currentUser.uid, 'staff');
     const q = query(staffCol, orderBy('joinDate', 'asc'));
-    const unsub = onSnapshot(q, (snap) => {
-      const items: Staff[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as Staff) }));
-      setStaffList(items);
-    }, (err) => {
-      console.error('Failed to load staff', err);
-      error('Failed to load staff', String(err?.message || err));
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const items: Staff[] = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Staff),
+        }));
+        setStaffList(items);
+      },
+      (err) => {
+        console.error('Failed to load staff', err);
+        error('Failed to load staff', String(err?.message || err));
+      }
+    );
     return () => unsub();
-  }, [currentUser, error]);
+  }, [currentUser]); // ✅ Removed 'error' dependency to prevent unnecessary re-renders
 
-  // Filtered staff
+  // -------------------- Debounced Search --------------------
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // -------------------- Filtered Staff --------------------
   const filteredStaff = useMemo(() => {
-    return staffList.filter(s => {
-      const term = searchTerm.trim().toLowerCase();
-      const matchesSearch = !term || s.name.toLowerCase().includes(term) || s.email.toLowerCase().includes(term) || s.role.toLowerCase().includes(term);
+    return staffList.filter((s) => {
+      const term = debouncedSearch.trim().toLowerCase();
+      const matchesSearch =
+        !term ||
+        s.name.toLowerCase().includes(term) ||
+        s.email.toLowerCase().includes(term) ||
+        s.role.toLowerCase().includes(term);
       const matchesRole = selectedRole === 'all' || s.role === selectedRole;
       return matchesSearch && matchesRole;
     });
-  }, [staffList, searchTerm, selectedRole]);
+  }, [staffList, debouncedSearch, selectedRole]);
 
-  // CRUD handlers
-  const handleAddStaff = async () => {
+  // -------------------- Add Staff --------------------
+  const handleAddStaff = useCallback(async () => {
     if (!newStaff.name || !newStaff.email || !newStaff.phone || !newStaff.role) {
       error('Missing fields', 'Please fill in all required fields.');
       return;
     }
-    const payload: Staff = {
+
+    const payload: Omit<Staff, 'id'> = {
       employeeId: generateUniqueEmployeeId(),
       name: newStaff.name,
       email: newStaff.email,
@@ -94,96 +184,111 @@ const StaffManagement: React.FC = () => {
       address: newStaff.address || '',
       status: 'active',
       joinDate: new Date().toISOString().split('T')[0],
-      id: ''
     };
-    if (!currentUser) {
-      const temp: Staff = { id: (staffList.length + 1).toString(), ...payload };
-      setStaffList(prev => [temp, ...prev]);
-      success('Staff added (local)', `${payload.name} added with Employee ID ${payload.employeeId}`);
-    } else {
-      try {
+
+    try {
+      if (!currentUser) {
+        setStaffList((prev) => [
+          { id: (prev.length + 1).toString(), ...payload },
+          ...prev,
+        ]);
+        success('Staff added (local)', `${payload.name} added`);
+      } else {
         const colRef = collection(db, 'users', currentUser.uid, 'staff');
-        await addDoc(colRef, payload);
-        success('Staff added', `${payload.name} added with Employee ID ${payload.employeeId}`);
-      } catch (e: any) {
-        console.error(e);
-        error('Save failed', e.message || 'Failed to save to DB.');
+        await addDoc(colRef, { ...payload, createdAt: serverTimestamp() });
+        success('Staff added', `${payload.name} added`);
       }
+    } catch (e: any) {
+      error('Save failed', e.message || 'Failed to save to DB.');
     }
+
     setNewStaff({ name: '', email: '', phone: '', role: '', address: '' });
     setIsAddModalOpen(false);
-  };
+  }, [newStaff, currentUser, staffList, error, success]);
 
+  // -------------------- Edit Staff --------------------
   const handleStartEdit = (s: Staff) => {
     setEditStaff({ ...s });
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateStaff = async () => {
-    if (!editStaff?.id || !editStaff.name || !editStaff.email || !editStaff.phone || !editStaff.role) {
+  const handleUpdateStaff = useCallback(async () => {
+    if (
+      !editStaff?.id ||
+      !editStaff.name ||
+      !editStaff.email ||
+      !editStaff.phone ||
+      !editStaff.role
+    ) {
       error('Missing fields', 'Please fill in all required fields.');
       return;
     }
-    if (!currentUser) {
-      setStaffList(prev => prev.map(p => p.id === editStaff.id ? editStaff : p));
-      success('Staff updated (local)', `${editStaff.name} updated`);
-      setIsEditModalOpen(false);
-      return;
-    }
+
     try {
-      const docRef = doc(db, 'users', currentUser.uid, 'staff', editStaff.id);
-      await setDoc(docRef, editStaff);
-      success('Staff updated', `${editStaff.name} updated`);
+      if (!currentUser) {
+        setStaffList((prev) =>
+          prev.map((p) => (p.id === editStaff.id ? editStaff : p))
+        );
+        success('Staff updated (local)', `${editStaff.name} updated`);
+      } else {
+        const docRef = doc(db, 'users', currentUser.uid, 'staff', editStaff.id);
+        await setDoc(docRef, editStaff);
+        success('Staff updated', `${editStaff.name} updated`);
+      }
       setIsEditModalOpen(false);
     } catch (e: any) {
-      console.error(e);
       error('Update failed', e.message || 'Failed to update staff');
     }
-  };
+  }, [editStaff, currentUser, error, success]);
 
+  // -------------------- Delete Staff --------------------
   const requestDelete = (id: string) => {
     setDeletingId(id);
     setDeleteConfirmOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deletingId) return;
-    const staff = staffList.find(s => s.id === deletingId);
-    if (!currentUser) {
-      setStaffList(prev => prev.filter(s => s.id !== deletingId));
-      success('Staff removed (local)', `${staff?.name} removed`);
-      setDeleteConfirmOpen(false);
-      setDeletingId(null);
-      return;
-    }
+    const staff = staffList.find((s) => s.id === deletingId);
     try {
-      await deleteDoc(doc(db, 'users', currentUser.uid, 'staff', deletingId));
-      success('Staff removed', `${staff?.name} removed`);
+      if (!currentUser) {
+        setStaffList((prev) => prev.filter((s) => s.id !== deletingId));
+        success('Staff removed (local)', `${staff?.name} removed`);
+      } else {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'staff', deletingId));
+        success('Staff removed', `${staff?.name} removed`);
+      }
     } catch (e: any) {
-      console.error(e);
       error('Delete failed', e.message || 'Failed to delete staff');
     }
     setDeleteConfirmOpen(false);
     setDeletingId(null);
-  };
+  }, [deletingId, staffList, currentUser, error, success]);
 
-  // Utilities
+  // -------------------- Status Colors --------------------
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'on-break': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'inactive': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'on-break':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
+  // -------------------- Render --------------------
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen text-gray-900">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your restaurant team and track attendance</p>
+          <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
+          <p className="text-gray-600 mt-1">
+            Manage your restaurant team and track attendance
+          </p>
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
@@ -195,7 +300,7 @@ const StaffManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -204,101 +309,184 @@ const StaffManagement: React.FC = () => {
               placeholder="Search staff members..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
           <div className="sm:w-48 w-full">
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="all">All Roles</option>
               {roles.map((role) => (
-                <option key={role} value={role}>{role}</option>
+                <option key={role} value={role}>
+                  {role}
+                </option>
               ))}
             </select>
           </div>
         </div>
       </div>
 
-      {/* Staff Table */}
-<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto">
-  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-    <thead className="bg-gray-50 dark:bg-gray-700">
-      <tr>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Employee ID</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Name</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Email</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Phone</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Role</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Status</th>
-        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {filteredStaff.map(s => (
-        <tr key={s.id} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-          <td className="px-4 py-2">{s.employeeId}</td>
-          <td className="px-4 py-2">{s.name}</td>
-          <td className="px-4 py-2">{s.email}</td>
-          <td className="px-4 py-2">{s.phone}</td>
-          <td className="px-4 py-2">{s.role}</td>
-          <td className="px-4 py-2">
-            <span className={`px-2 py-1 rounded ${getStatusColor(s.status)}`}>{s.status}</span>
-          </td>
-          <td className="px-4 py-2 flex gap-2">
-            <button onClick={() => handleStartEdit(s)}><EditIcon className="h-4 w-4" /></button>
-            <button onClick={() => requestDelete(s.id)}><Trash2 className="h-4 w-4" /></button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
-
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-100">
+            <tr>
+              {['Employee ID', 'Name', 'Email', 'Phone', 'Role', 'Status', 'Actions'].map(
+                (header) => (
+                  <th
+                    key={header}
+                    className="px-4 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    {header}
+                  </th>
+                )
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredStaff.map((s) => (
+              <tr key={s.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2">{s.employeeId}</td>
+                <td className="px-4 py-2">{s.name}</td>
+                <td className="px-4 py-2">{s.email}</td>
+                <td className="px-4 py-2">{s.phone}</td>
+                <td className="px-4 py-2">{s.role}</td>
+                <td className="px-4 py-2">
+                  <span className={`px-2 py-1 rounded ${getStatusColor(s.status)}`}>
+                    {s.status}
+                  </span>
+                </td>
+                <td className="px-4 py-2 flex gap-2">
+                  <button onClick={() => handleStartEdit(s)}>
+                    <EditIcon className="h-4 w-4 text-blue-600 hover:text-blue-800" />
+                  </button>
+                  <button onClick={() => requestDelete(s.id)}>
+                    <Trash2 className="h-4 w-4 text-red-600 hover:text-red-800" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Add Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg font-bold mb-4">Add Staff Member</h2>
-            <input type="text" placeholder="Name" value={newStaff.name} onChange={(e) => setNewStaff(prev => ({ ...prev, name: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <input type="email" placeholder="Email" value={newStaff.email} onChange={(e) => setNewStaff(prev => ({ ...prev, email: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <input type="text" placeholder="Phone" value={newStaff.phone} onChange={(e) => setNewStaff(prev => ({ ...prev, phone: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <select value={newStaff.role} onChange={(e) => setNewStaff(prev => ({ ...prev, role: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded">
-              <option value="">Select Role</option>
-              {roles.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-            <textarea placeholder="Address" value={newStaff.address} onChange={(e) => setNewStaff(prev => ({ ...prev, address: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
-              <button onClick={handleAddStaff} className="px-4 py-2 bg-orange-500 text-white rounded">Add</button>
+        <Modal title="Add Staff Member" onClose={() => setIsAddModalOpen(false)}>
+          <div className="space-y-3">
+            <Input
+              label="Name"
+              value={newStaff.name}
+              onChange={(v) => setNewStaff({ ...newStaff, name: v })}
+            />
+            <Input
+              label="Email"
+              value={newStaff.email}
+              onChange={(v) => setNewStaff({ ...newStaff, email: v })}
+            />
+            <Input
+              label="Phone"
+              value={newStaff.phone}
+              onChange={(v) => setNewStaff({ ...newStaff, phone: v })}
+            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">Role</label>
+              <select
+                value={newStaff.role}
+                onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="">Select Role</option>
+                {roles.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
             </div>
+            <Input
+              label="Address"
+              value={newStaff.address}
+              onChange={(v) => setNewStaff({ ...newStaff, address: v })}
+            />
+            <button
+              onClick={handleAddStaff}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-medium mt-3"
+            >
+              Save
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg font-bold mb-4">Edit Staff Member</h2>
-            <p className="mb-2 text-sm text-gray-500">Employee ID: {editStaff.employeeId}</p>
-            <input type="text" placeholder="Name" value={editStaff.name} onChange={(e) => setEditStaff(prev => ({ ...prev, name: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <input type="email" placeholder="Email" value={editStaff.email} onChange={(e) => setEditStaff(prev => ({ ...prev, email: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <input type="text" placeholder="Phone" value={editStaff.phone} onChange={(e) => setEditStaff(prev => ({ ...prev, phone: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <select value={editStaff.role} onChange={(e) => setEditStaff(prev => ({ ...prev, role: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded">
-              <option value="">Select Role</option>
-              {roles.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-            <textarea placeholder="Address" value={editStaff.address} onChange={(e) => setEditStaff(prev => ({ ...prev, address: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
-              <button onClick={handleUpdateStaff} className="px-4 py-2 bg-orange-500 text-white rounded">Update</button>
+        <Modal title="Edit Staff Member" onClose={() => setIsEditModalOpen(false)}>
+          <div className="space-y-3">
+            <Input
+              label="Name"
+              value={editStaff.name}
+              onChange={(v) => setEditStaff({ ...editStaff, name: v })}
+            />
+            <Input
+              label="Email"
+              value={editStaff.email}
+              onChange={(v) => setEditStaff({ ...editStaff, email: v })}
+            />
+            <Input
+              label="Phone"
+              value={editStaff.phone}
+              onChange={(v) => setEditStaff({ ...editStaff, phone: v })}
+            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">Role</label>
+              <select
+                value={editStaff.role}
+                onChange={(e) => setEditStaff({ ...editStaff, role: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                {roles.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
             </div>
+            <Input
+              label="Address"
+              value={editStaff.address}
+              onChange={(v) => setEditStaff({ ...editStaff, address: v })}
+            />
+            <button
+              onClick={handleUpdateStaff}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium mt-3"
+            >
+              Update
+            </button>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteConfirmOpen && (
+        <Modal title="Confirm Delete" onClose={() => setDeleteConfirmOpen(false)}>
+          <p className="text-gray-700 mb-4">
+            Are you sure you want to delete this staff member?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setDeleteConfirmOpen(false)}
+              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

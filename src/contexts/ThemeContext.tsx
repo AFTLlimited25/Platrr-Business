@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -11,51 +11,23 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('system');
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('platrr_theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    // Forcefully ensure light mode only
+    document.documentElement.classList.remove('dark');
+    document.body.style.backgroundColor = '#ffffff';
+    document.body.style.color = '#000000';
   }, []);
 
-  useEffect(() => {
-    const updateTheme = () => {
-      let dark = false;
-      
-      if (theme === 'dark') {
-        dark = true;
-      } else if (theme === 'system') {
-        dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      }
-      
-      setIsDark(dark);
-      
-      if (dark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    updateTheme();
-
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', updateTheme);
-      return () => mediaQuery.removeEventListener('change', updateTheme);
-    }
-  }, [theme]);
-
-  const handleSetTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem('platrr_theme', newTheme);
+  // Always stays light, ignores input
+  const handleSetTheme = () => {
+    setTheme('light');
+    localStorage.setItem('platrr_theme', 'light');
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme: handleSetTheme, isDark }}>
+    <ThemeContext.Provider value={{ theme: 'light', setTheme: handleSetTheme, isDark: false }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -79,7 +79,7 @@ const DashboardHome: React.FC = () => {
     return () => unsubAuth();
   }, []);
 
-  if (loading) return <p className="text-gray-600 dark:text-gray-400 text-center py-10">Loading dashboard...</p>;
+  if (loading) return <p className="text-gray-600 text-center py-10">Loading dashboard...</p>;
 
   const metrics = [
     {
@@ -111,9 +111,9 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 h-screen flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 py-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+      <div className="sticky top-0 bg-white z-10 py-4">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">
           Overview of your restaurant and staff activities
         </p>
       </div>
@@ -125,7 +125,7 @@ const DashboardHome: React.FC = () => {
           {metrics.map((metric, idx) => {
             const Icon = metric.icon;
             return (
-              <div key={idx} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className={`${metric.bgColor} p-2 rounded-lg`}>
                     <Icon className={`${metric.color} h-6 w-6`} />
@@ -136,8 +136,8 @@ const DashboardHome: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{metric.title}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{metric.value}</p>
+                  <p className="text-sm text-gray-500">{metric.title}</p>
                 </div>
               </div>
             );
@@ -147,9 +147,9 @@ const DashboardHome: React.FC = () => {
         {/* Recent Activity & Upcoming Shifts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
               <button className="text-sm text-orange-500 hover:text-orange-600 font-medium transition-colors">View all</button>
             </div>
             <div className="space-y-4 overflow-y-auto max-h-[350px]">
@@ -164,13 +164,13 @@ const DashboardHome: React.FC = () => {
                     act.type === 'alert' ? AlertTriangle :
                     Clock;
                   return (
-                    <div key={i} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full flex-shrink-0">
+                    <div key={i} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="p-2 bg-gray-100 rounded-full flex-shrink-0">
                         <Icon className="text-orange-600 h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{act.message || act.action || act.description || 'No details'}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-medium text-gray-900">{act.message || act.action || act.description || 'No details'}</p>
+                        <p className="text-xs text-gray-500">
                           {act.timestamp ? new Date(act.timestamp.seconds ? act.timestamp.seconds * 1000 : act.timestamp).toLocaleString() : '—'}
                         </p>
                       </div>
@@ -182,9 +182,9 @@ const DashboardHome: React.FC = () => {
           </div>
 
           {/* Upcoming Shifts */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Shifts</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Shifts</h2>
               <Calendar className="h-5 w-5 text-gray-400" />
             </div>
             <div className="space-y-4">
@@ -192,10 +192,10 @@ const DashboardHome: React.FC = () => {
                 <p className="text-gray-500 text-sm">No upcoming shifts</p>
               ) : (
                 upcomingShifts.map((shift, i) => (
-                  <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{shift.staff}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{shift.role}</p>
-                    <p className="mt-1 text-xs text-orange-600 dark:text-orange-400 font-semibold">{shift.time} - {shift.date}</p>
+                  <div key={i} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">{shift.staff}</p>
+                    <p className="text-xs text-gray-500">{shift.role}</p>
+                    <p className="mt-1 text-xs text-orange-600 font-semibold">{shift.time} - {shift.date}</p>
                   </div>
                 ))
               )}

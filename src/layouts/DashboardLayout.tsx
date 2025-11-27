@@ -4,11 +4,7 @@ import {
   Menu, X, Home, Users, Package, BarChart3, Settings, ChefHat, LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-<<<<<<< HEAD
 import toast from 'react-hot-toast';
-=======
-import { useToast } from '../contexts/ToastContext';
->>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
 
 const DashboardLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,10 +12,6 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-<<<<<<< HEAD
-=======
-  const { success } = useToast();
->>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -29,7 +21,6 @@ const DashboardLayout: React.FC = () => {
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
-<<<<<<< HEAD
   const handleLogout = async () => {
     try {
       await logout();
@@ -42,16 +33,6 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-=======
-  const handleLogout = () => {
-    logout();
-    success('Logged out successfully');
-    navigate('/');
-  };
-
-  return (
-    <div className="min-h-screen bg-orange-50 transition-colors">
->>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 fixed w-full z-20">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -82,13 +63,8 @@ const DashboardLayout: React.FC = () => {
                   </span>
                 </div>
                 <div className="hidden sm:block text-left">
-<<<<<<< HEAD
                   <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
                   <p className="text-xs text-gray-500">{user?.businessName || 'Business'}</p>
-=======
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.businessName}</p>
->>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                 </div>
               </button>
 
@@ -96,13 +72,8 @@ const DashboardLayout: React.FC = () => {
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-200">
-<<<<<<< HEAD
                     <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
                     <p className="text-sm text-gray-500">{user?.email || 'No email'}</p>
-=======
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
->>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                   </div>
 
                   {/* Logout */}

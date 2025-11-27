@@ -74,10 +74,10 @@ const Reports: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Reports & Analytics
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Track performance and analyze business metrics
           </p>
         </div>
@@ -88,16 +88,16 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Report Type
             </label>
             <select
               value={selectedReport}
               onChange={(e) => setSelectedReport(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
             >
               {reportTypes.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -107,13 +107,13 @@ const Reports: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Time Period
             </label>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
             >
               {periods.map((period) => (
                 <option key={period.value} value={period.value}>
@@ -125,7 +125,7 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards with Mini Charts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => {
           const metric = [
@@ -133,7 +133,7 @@ const Reports: React.FC = () => {
               title: "Total Revenue",
               value: "£12,081",
               icon: DollarSign,
-              color: "bg-green-100",
+              color: "bg-green-100 dark:bg-green-900/20",
               stroke: "#16a34a",
               dataKey: "revenue",
             },
@@ -141,7 +141,7 @@ const Reports: React.FC = () => {
               title: "Total Orders",
               value: "435",
               icon: BarChart3,
-              color: "bg-blue-100",
+              color: "bg-blue-100 dark:bg-blue-900/20",
               stroke: "#2563eb",
               dataKey: "orders",
             },
@@ -149,7 +149,7 @@ const Reports: React.FC = () => {
               title: "Avg Order Value",
               value: "£27.78",
               icon: Target,
-              color: "bg-purple-100",
+              color: "bg-purple-100 dark:bg-purple-900/20",
               stroke: "#7c3aed",
               dataKey: "revenue",
             },
@@ -157,7 +157,7 @@ const Reports: React.FC = () => {
               title: "Staff Hours",
               value: "155",
               icon: Clock,
-              color: "bg-orange-100",
+              color: "bg-orange-100 dark:bg-orange-900/20",
               stroke: "#ea580c",
               dataKey: "orders",
             },
@@ -166,21 +166,21 @@ const Reports: React.FC = () => {
           return (
             <div
               key={i}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 flex flex-col"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex flex-col"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {metric.title}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                     {metric.value}
                   </p>
                 </div>
                 <div
                   className={`w-12 h-12 ${metric.color} rounded-lg flex items-center justify-center`}
                 >
-                  <metric.icon className="h-6 w-6 text-gray-700" />
+                  <metric.icon className="h-6 w-6 text-gray-700 dark:text-white" />
                 </div>
               </div>
               <div className="h-16 mt-3">
@@ -204,9 +204,9 @@ const Reports: React.FC = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Revenue */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
               <TrendingUp className="h-5 w-5 mr-2" />
               Daily Revenue & Orders
             </h2>
@@ -227,9 +227,9 @@ const Reports: React.FC = () => {
         </div>
 
         {/* Staff Performance */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
               <Users className="h-5 w-5 mr-2" />
               Staff Performance
             </h2>
@@ -261,9 +261,9 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Inventory Turnover */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-4 sm:p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
             <Package className="h-5 w-5 mr-2" />
             Inventory Turnover
           </h2>

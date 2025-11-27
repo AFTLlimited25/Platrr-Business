@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users, Package, DollarSign, TrendingUp, Clock, AlertTriangle,
+  Users, Package, DollarSign, TrendingUp, AlertTriangle,
   CheckCircle, Calendar, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
@@ -79,7 +79,14 @@ const DashboardHome: React.FC = () => {
     return () => unsubAuth();
   }, []);
 
-  if (loading) return <p className="text-gray-600 dark:text-gray-400 text-center py-10">Loading dashboard...</p>;
+  if (loading) return (
+    <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+        <p className="text-gray-600 font-medium">Loading dashboard...</p>
+      </div>
+    </div>
+  );
 
   const metrics = [
     {
@@ -109,99 +116,106 @@ const DashboardHome: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 h-screen flex flex-col">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 py-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-gray-200">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">
           Overview of your restaurant and staff activities
         </p>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto space-y-6 mt-4">
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Metrics Grid - Mobile First */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {metrics.map((metric, idx) => {
             const Icon = metric.icon;
             return (
-              <div key={idx} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
+              <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-4">
                   <div className={`${metric.bgColor} p-2 rounded-lg`}>
-                    <Icon className={`${metric.color} h-6 w-6`} />
+                    <Icon className={`${metric.color} h-5 w-5 sm:h-6 sm:w-6`} />
                   </div>
-                  <div className={`flex items-center text-sm font-medium ${metric.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                    {metric.trend === 'up' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-                    <span>{Math.abs(metric.change)}%</span>
+                  <div className={`flex items-center text-xs sm:text-sm font-medium ${metric.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                    {metric.trend === 'up' ? <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />}
+                    <span className="ml-1">{Math.abs(metric.change)}%</span>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{metric.title}</p>
+                <div>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{metric.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">{metric.title}</p>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Recent Activity & Upcoming Shifts */}
+        {/* Recent Activity & Upcoming Shifts - Stack on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
-              <button className="text-sm text-orange-500 hover:text-orange-600 font-medium transition-colors">View all</button>
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h2>
             </div>
-            <div className="space-y-4 overflow-y-auto max-h-[350px]">
-              {recentActivity.length === 0 ? (
-                <p className="text-gray-500 text-sm">No recent activity</p>
-              ) : (
-                recentActivity.map((act, i) => {
-                  const Icon =
-                    act.type === 'inventory' ? Package :
-                    act.type === 'staff' ? Users :
-                    act.type === 'order' ? CheckCircle :
-                    act.type === 'alert' ? AlertTriangle :
-                    Clock;
-                  return (
-                    <div key={i} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full flex-shrink-0">
-                        <Icon className="text-orange-600 h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{act.message || act.action || act.description || 'No details'}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {act.timestamp ? new Date(act.timestamp.seconds ? act.timestamp.seconds * 1000 : act.timestamp).toLocaleString() : '—'}
-                        </p>
-                      </div>
+            <div className="divide-y divide-gray-200">
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity: any, idx: number) => (
+                  <div key={idx} className="px-4 sm:px-6 py-4 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-700 font-medium truncate">{activity.description || 'Activity logged'}</p>
+                      <p className="text-xs text-gray-500 mt-1">{new Date(activity.timestamp).toLocaleDateString()}</p>
                     </div>
-                  );
-                })
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 sm:px-6 py-8 text-center">
+                  <p className="text-sm text-gray-500">No recent activity</p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Upcoming Shifts */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Shifts</h2>
-              <Calendar className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Upcoming Shifts</h2>
             </div>
-            <div className="space-y-4">
-              {upcomingShifts.length === 0 ? (
-                <p className="text-gray-500 text-sm">No upcoming shifts</p>
-              ) : (
-                upcomingShifts.map((shift, i) => (
-                  <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{shift.staff}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{shift.role}</p>
-                    <p className="mt-1 text-xs text-orange-600 dark:text-orange-400 font-semibold">{shift.time} - {shift.date}</p>
+            <div className="divide-y divide-gray-200">
+              {upcomingShifts.length > 0 ? (
+                upcomingShifts.map((shift: any, idx: number) => (
+                  <div key={idx} className="px-4 sm:px-6 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                    <Calendar className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-700 font-medium truncate">{shift.staffName || 'Staff'}</p>
+                      <p className="text-xs text-gray-500 mt-1">{shift.date} • {shift.time}</p>
+                    </div>
                   </div>
                 ))
+              ) : (
+                <div className="px-4 sm:px-6 py-8 text-center">
+                  <p className="text-sm text-gray-500">No upcoming shifts</p>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Alerts Section */}
+        {(lowStockCount > 0) && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 sm:p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-medium text-orange-900">Low Stock Alert</h3>
+                <p className="text-sm text-orange-700 mt-1">
+                  You have {lowStockCount} item{lowStockCount !== 1 ? 's' : ''} running low on stock. Please review your inventory.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, User, CheckCircle, XCircle, Calendar, MapPin } from 'lucide-react';
-import { useToast } from '../../contexts/ToastContext';
+import toast from 'react-hot-toast';
 import { db } from '../../firebase';
 import { collectionGroup, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -19,13 +19,12 @@ const StaffAttendancePage: React.FC = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [currentEmployee, setCurrentEmployee] = useState<AttendanceRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { success, error } = useToast();
 
   // No local mock employees/attendance — we persist to Firestore
 
   const handleEmployeeSearch = () => {
     if (!employeeId.trim()) {
-      error('Employee ID required', 'Please enter your employee ID.');
+      toast.error('Please enter your employee ID.');
       return;
     }
 
@@ -62,13 +61,13 @@ const StaffAttendancePage: React.FC = () => {
           // Auto toggle attendance based on previous state
           await autoToggleAttendance(attendanceRecord);
         } else {
-          error('Employee not found', 'Please check your employee ID and try again.');
+          toast.error('Please check your employee ID and try again.');
           setCurrentEmployee(null);
           setIsLoading(false);
         }
       } catch (e) {
         console.error(e);
-        error('Lookup failed', 'Failed to lookup employee.');
+        toast.error('Failed to lookup employee.');
         setCurrentEmployee(null);
         setIsLoading(false);
       }
@@ -95,11 +94,11 @@ const StaffAttendancePage: React.FC = () => {
         await setDoc(attendanceRef, { ...updatedRecord });
       } catch (e) {
         console.error(e);
-        error('Save failed', 'Failed to save clock in to database.');
+        toast.error('Failed to save clock in to database.');
       }
     })();
 
-    success('Clocked in successfully!', `You clocked in at ${timeString}`);
+    toast.success(`You clocked in at ${timeString}`);
   };
 
   const handleClockOut = () => {
@@ -125,11 +124,11 @@ const StaffAttendancePage: React.FC = () => {
         setCurrentEmployee({ ...updatedRecord, hoursWorked: hours });
       } catch (e) {
         console.error(e);
-        error('Save failed', 'Failed to save clock out to database.');
+        toast.error('Failed to save clock out to database.');
       }
     })();
 
-    success('Clocked out successfully!', `You clocked out at ${timeString}`);
+    toast.success(`You clocked out at ${timeString}`);
   };
 
   const calculateHoursWorked = (clockIn?: string, clockOut?: string) => {
@@ -159,10 +158,10 @@ const StaffAttendancePage: React.FC = () => {
         const attendanceRef = doc(db, 'attendance', updated.id);
         await setDoc(attendanceRef, updated);
         setCurrentEmployee(updated);
-        success('Clocked in', `You clocked in at ${timeString}`);
+        toast.success(`You clocked in at ${timeString}`);
       } catch (e) {
         console.error(e);
-        error('Save failed', 'Failed to save clock in to database.');
+        toast.error('Failed to save clock in to database.');
       } finally {
         setIsLoading(false);
       }
@@ -175,10 +174,10 @@ const StaffAttendancePage: React.FC = () => {
         const attendanceRef = doc(db, 'attendance', updated.id);
         await setDoc(attendanceRef, { ...updated });
         setCurrentEmployee(updated);
-        success('Clocked out', `You clocked out at ${timeString}`);
+        toast.success(`You clocked out at ${timeString}`);
       } catch (e) {
         console.error(e);
-        error('Save failed', 'Failed to save clock out to database.');
+        toast.error('Failed to save clock out to database.');
       } finally {
         setIsLoading(false);
       }

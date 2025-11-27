@@ -7,10 +7,11 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   currentUser: User | null;
+  user: any;
   signup: (data: { email: string; password: string; name: string; businessName: string; phoneNumber: string }) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -28,24 +29,31 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const signup = async (data: { email: string; password: string; name: string; businessName: string; phoneNumber: string }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    const user = userCredential.user;
+    const authUser = userCredential.user;
     
     // Save additional data to Firestore
-    await setDoc(doc(db, 'users', user.uid), {
+    const userData = {
       name: data.name,
       businessName: data.businessName,
       phoneNumber: data.phoneNumber,
       email: data.email,
-      createdAt: new Date()
-    });
+      createdAt: new Date(),
+      trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days trial
+      status: 'active',
+      plan: 'free-trial'
+    };
+    
+    await setDoc(doc(db, 'users', authUser.uid), userData);
+    setUser(userData);
   };
 
-  const login = (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = () => {
@@ -53,14 +61,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      setCurrentUser(authUser);
+      if (authUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', authUser.uid));
+          if (userDoc.exists()) {
+            setUser({ ...userDoc.data(), uid: authUser.uid });
+          }
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  const value = { currentUser, signup, login, logout };
+  const value: AuthContextType = { currentUser, user, signup, login, logout };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }

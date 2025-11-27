@@ -1,7 +1,7 @@
 // src/pages/staff/StaffManagement.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Plus, Search, CreditCard as EditIcon, Trash2, Copy } from 'lucide-react';
-import { useToast } from '../../contexts/ToastContext';
+import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
@@ -20,7 +20,6 @@ interface Staff {
 }
 
 const StaffManagement: React.FC = () => {
-  const { success, error } = useToast();
   const { currentUser } = useAuth();
 
   // UI state
@@ -28,8 +27,6 @@ const StaffManagement: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Data state
   const [staffList, setStaffList] = useState<Staff[]>([]);
@@ -60,14 +57,17 @@ const StaffManagement: React.FC = () => {
     const staffCol = collection(db, 'users', currentUser.uid, 'staff');
     const q = query(staffCol, orderBy('joinDate', 'asc'));
     const unsub = onSnapshot(q, (snap) => {
-      const items: Staff[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as Staff) }));
+      const items: Staff[] = snap.docs.map(d => {
+        const data = d.data() as Staff;
+        return { ...data, id: d.id };
+      });
       setStaffList(items);
     }, (err) => {
       console.error('Failed to load staff', err);
-      error('Failed to load staff', String(err?.message || err));
+      toast.error(String(err?.message || err));
     });
     return () => unsub();
-  }, [currentUser, error]);
+  }, [currentUser]);
 
   // Filtered staff
   const filteredStaff = useMemo(() => {
@@ -82,7 +82,7 @@ const StaffManagement: React.FC = () => {
   // CRUD handlers
   const handleAddStaff = async () => {
     if (!newStaff.name || !newStaff.email || !newStaff.phone || !newStaff.role) {
-      error('Missing fields', 'Please fill in all required fields.');
+      toast.error('Please fill in all required fields.');
       return;
     }
     const payload: Staff = {
@@ -97,17 +97,17 @@ const StaffManagement: React.FC = () => {
       id: ''
     };
     if (!currentUser) {
-      const temp: Staff = { id: (staffList.length + 1).toString(), ...payload };
+      const temp: Staff = { ...payload, id: (staffList.length + 1).toString() };
       setStaffList(prev => [temp, ...prev]);
-      success('Staff added (local)', `${payload.name} added with Employee ID ${payload.employeeId}`);
+      toast.success(`${payload.name} added with Employee ID ${payload.employeeId}`);
     } else {
       try {
         const colRef = collection(db, 'users', currentUser.uid, 'staff');
         await addDoc(colRef, payload);
-        success('Staff added', `${payload.name} added with Employee ID ${payload.employeeId}`);
+        toast.success(`${payload.name} added with Employee ID ${payload.employeeId}`);
       } catch (e: any) {
         console.error(e);
-        error('Save failed', e.message || 'Failed to save to DB.');
+        toast.error(e.message || 'Failed to save to DB.');
       }
     }
     setNewStaff({ name: '', email: '', phone: '', role: '', address: '' });
@@ -121,59 +121,49 @@ const StaffManagement: React.FC = () => {
 
   const handleUpdateStaff = async () => {
     if (!editStaff?.id || !editStaff.name || !editStaff.email || !editStaff.phone || !editStaff.role) {
-      error('Missing fields', 'Please fill in all required fields.');
+      toast.error('Please fill in all required fields.');
       return;
     }
     if (!currentUser) {
       setStaffList(prev => prev.map(p => p.id === editStaff.id ? editStaff : p));
-      success('Staff updated (local)', `${editStaff.name} updated`);
+      toast.success(`${editStaff.name} updated`);
       setIsEditModalOpen(false);
       return;
     }
     try {
       const docRef = doc(db, 'users', currentUser.uid, 'staff', editStaff.id);
       await setDoc(docRef, editStaff);
-      success('Staff updated', `${editStaff.name} updated`);
+      toast.success(`${editStaff.name} updated`);
       setIsEditModalOpen(false);
     } catch (e: any) {
       console.error(e);
-      error('Update failed', e.message || 'Failed to update staff');
+      toast.error(e.message || 'Failed to update staff');
     }
   };
 
-  const requestDelete = (id: string) => {
-    setDeletingId(id);
-    setDeleteConfirmOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deletingId) return;
-    const staff = staffList.find(s => s.id === deletingId);
+  const requestDelete = async (id: string) => {
+    const staff = staffList.find(s => s.id === id);
     if (!currentUser) {
-      setStaffList(prev => prev.filter(s => s.id !== deletingId));
-      success('Staff removed (local)', `${staff?.name} removed`);
-      setDeleteConfirmOpen(false);
-      setDeletingId(null);
+      setStaffList(prev => prev.filter(s => s.id !== id));
+      toast.success(`${staff?.name} removed`);
       return;
     }
     try {
-      await deleteDoc(doc(db, 'users', currentUser.uid, 'staff', deletingId));
-      success('Staff removed', `${staff?.name} removed`);
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'staff', id));
+      toast.success(`${staff?.name} removed`);
     } catch (e: any) {
       console.error(e);
-      error('Delete failed', e.message || 'Failed to delete staff');
+      toast.error(e.message || 'Failed to delete staff');
     }
-    setDeleteConfirmOpen(false);
-    setDeletingId(null);
   };
 
   // Utilities
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'on-break': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'inactive': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'on-break': return 'bg-yellow-100 text-yellow-800';
+      case 'inactive': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -182,8 +172,8 @@ const StaffManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your restaurant team and track attendance</p>
+          <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
+          <p className="text-gray-600 mt-1">Manage your restaurant team and track attendance</p>
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
@@ -195,7 +185,7 @@ const StaffManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -248,7 +238,7 @@ const StaffManagement: React.FC = () => {
             <span className={`px-2 py-1 rounded ${getStatusColor(s.status)}`}>{s.status}</span>
           </td>
           <td className="px-4 py-2 flex gap-2">
-            <button onClick={() => handleStartEdit(s)}><EditIcon className="h-4 w-4" /></button>
+            <button onClick={() => handleStartEdit(s)} className="text-orange-600 hover:text-orange-700"><Edit className="h-4 w-4" /></button>
             <button onClick={() => requestDelete(s.id)}><Trash2 className="h-4 w-4" /></button>
           </td>
         </tr>

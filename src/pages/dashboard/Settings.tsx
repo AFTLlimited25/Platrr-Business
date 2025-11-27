@@ -1,41 +1,42 @@
 import React, { useState } from 'react';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Building, 
-  Bell, 
-  Shield, 
+import {
+  User,
+  Building,
+  Bell,
+  Shield,
   CreditCard,
-  Download,
-  Upload,
-  Save,
   Eye,
-  EyeOff
+  EyeOff,
+  Save,
+  LogOut,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
-  const { success, error } = useToast();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  // Get trial days remaining
+  const getTrialDaysRemaining = () => {
+    if (!user?.trialEndsAt) return 30;
+    const trialEnd = new Date(user.trialEndsAt);
+    const today = new Date();
+    const daysRemaining = Math.ceil((trialEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, daysRemaining);
+  };
+
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: '+44 7700 900123',
-    address: '123 Main Street, London, UK'
-  });
-
-  const [businessData, setBusinessData] = useState({
-    businessName: user?.businessName || '',
-    businessType: 'Restaurant',
-    address: '456 Business Ave, London, UK',
-    phone: '+44 20 7946 0958',
-    website: 'www.bellavista.co.uk',
-    taxNumber: 'GB123456789'
+    phone: user?.phoneNumber || '',
+    businessName: user?.businessName || ''
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -46,7 +47,6 @@ const Settings: React.FC = () => {
 
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
-    pushNotifications: true,
     lowStockAlerts: true,
     staffUpdates: true,
     orderNotifications: true,
@@ -55,270 +55,375 @@ const Settings: React.FC = () => {
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'business', label: 'Business', icon: Building },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'billing', label: 'Billing', icon: CreditCard }
+    { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
+    { id: 'security', label: 'Security', icon: Shield }
   ];
 
-  // Handlers
-  const handleSaveProfile = () => success('Profile updated!', 'Your profile information has been saved successfully.');
-  const handleSaveBusiness = () => success('Business settings updated!', 'Your business information has been saved successfully.');
+  const handleSaveProfile = () => {
+    toast.success('Profile updated');
+  };
+
   const handleChangePassword = () => {
+    if (!passwordData.currentPassword) {
+      toast.error('Please enter your current password');
+      return;
+    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      error('Password mismatch', 'New password and confirmation do not match.');
+      toast.error('Passwords do not match');
       return;
     }
     if (passwordData.newPassword.length < 8) {
-      error('Password too short', 'Password must be at least 8 characters long.');
+      toast.error('Password must be at least 8 characters');
       return;
     }
-    success('Password changed!', 'Your password has been updated successfully.');
+    toast.success('Password changed successfully');
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
-  const handleSaveNotifications = () => success('Notification preferences saved!', 'Your notification settings have been updated.');
 
-  // Render functions for tabs
+  const handleSaveNotifications = () => {
+    toast.success('Notification settings updated');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (err) {
+      toast.error('Failed to logout');
+    }
+  };
+
   const renderProfileTab = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Personal Information</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {['name', 'email', 'phone', 'address'].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {field === 'name' ? 'Full Name' : field === 'email' ? 'Email Address' : field === 'phone' ? 'Phone Number' : 'Address'}
-            </label>
-            <input
-              type={field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'}
-              value={profileData[field as keyof typeof profileData]}
-              onChange={(e) => setProfileData({ ...profileData, [field]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
-            />
-          </div>
-        ))}
-      </div>
-      <button onClick={handleSaveProfile} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-        <Save className="h-4 w-4" />
-        <span>Save Changes</span>
-      </button>
-    </div>
-  );
-
-  const renderBusinessTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Information</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { key: 'businessName', label: 'Business Name', type: 'text' },
-          { key: 'businessType', label: 'Business Type', type: 'select', options: ['Restaurant','Cafe','Fast Food','Bar','Catering'] },
-          { key: 'address', label: 'Business Address', type: 'text', span: 2 },
-          { key: 'phone', label: 'Business Phone', type: 'tel' },
-          { key: 'website', label: 'Website', type: 'url' },
-          { key: 'taxNumber', label: 'Tax Number', type: 'text' },
-        ].map((item) => (
-          <div key={item.key} className={item.span === 2 ? 'md:col-span-2' : ''}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{item.label}</label>
-            {item.type === 'select' ? (
-              <select
-                value={businessData[item.key as keyof typeof businessData]}
-                onChange={(e) => setBusinessData({ ...businessData, [item.key]: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
-              >
-                {item.options!.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            ) : (
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+        <div className="space-y-4">
+          {[
+            { key: 'name', label: 'Full Name', type: 'text' },
+            { key: 'email', label: 'Email Address', type: 'email' },
+            { key: 'phone', label: 'Phone Number', type: 'tel' },
+            { key: 'businessName', label: 'Business Name', type: 'text' }
+          ].map((field) => (
+            <div key={field.key}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {field.label}
+              </label>
               <input
-                type={item.type}
-                value={businessData[item.key as keyof typeof businessData]}
-                onChange={(e) => setBusinessData({ ...businessData, [item.key]: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                type={field.type}
+                value={profileData[field.key as keyof typeof profileData]}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, [field.key]: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={handleSaveProfile}
+          className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 w-full sm:w-auto"
+        >
+          <Save className="h-4 w-4" />
+          Save Changes
+        </button>
       </div>
-      <button onClick={handleSaveBusiness} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-        <Save className="h-4 w-4" />
-        <span>Save Changes</span>
-      </button>
     </div>
   );
 
   const renderNotificationsTab = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notification Preferences</h3>
-      <div className="space-y-4">
-        {Object.entries(notifications).map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {key === 'emailNotifications' && 'Receive notifications via email'}
-                {key === 'pushNotifications' && 'Receive push notifications in browser'}
-                {key === 'lowStockAlerts' && 'Get notified when inventory is running low'}
-                {key === 'staffUpdates' && 'Receive updates about staff activities'}
-                {key === 'orderNotifications' && 'Get notified about new orders'}
-                {key === 'weeklyReports' && 'Receive weekly performance reports'}
-              </p>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h3>
+        <div className="space-y-4">
+          {Object.entries(notifications).map(([key, value]) => (
+            <div
+              key={key}
+              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+            >
+              <div>
+                <label className="text-sm font-medium text-gray-900 block">
+                  {key === 'emailNotifications'
+                    ? 'Email Notifications'
+                    : key === 'lowStockAlerts'
+                    ? 'Low Stock Alerts'
+                    : key === 'staffUpdates'
+                    ? 'Staff Updates'
+                    : key === 'orderNotifications'
+                    ? 'Order Notifications'
+                    : 'Weekly Reports'}
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  {key === 'emailNotifications'
+                    ? 'Receive email updates'
+                    : key === 'lowStockAlerts'
+                    ? 'Alert when stock is low'
+                    : key === 'staffUpdates'
+                    ? 'Staff schedule changes'
+                    : key === 'orderNotifications'
+                    ? 'New order notifications'
+                    : 'Weekly business report'}
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={(e) =>
+                  setNotifications({ ...notifications, [key]: e.target.checked })
+                }
+                className="h-4 w-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+              />
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked={value} onChange={(e) => setNotifications({ ...notifications, [key]: e.target.checked })} className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer dark:bg-gray-700 peer-checked:bg-orange-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-            </label>
-          </div>
-        ))}
+          ))}
+        </div>
+        <button
+          onClick={handleSaveNotifications}
+          className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 w-full sm:w-auto"
+        >
+          <Save className="h-4 w-4" />
+          Save Preferences
+        </button>
       </div>
-      <button onClick={handleSaveNotifications} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-        <Save className="h-4 w-4" />
-        <span>Save Preferences</span>
-      </button>
+    </div>
+  );
+
+  const trialDaysRemaining = getTrialDaysRemaining();
+  const trialPercentage = (trialDaysRemaining / 30) * 100;
+
+  const renderBillingTab = () => (
+    <div className="space-y-6">
+      {/* Trial Status */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <CheckCircle className="h-6 w-6 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-blue-900 mb-2">Free Trial Active</h4>
+            <p className="text-sm text-blue-700 mb-4">
+              You are currently on a 30-day free trial. Full access to all features with no credit card required.
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-blue-900">
+                  Days Remaining: {trialDaysRemaining}
+                </span>
+                <span className="text-sm text-blue-700">{Math.round(trialPercentage)}%</span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${trialPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upgrade Prompt */}
+      {trialDaysRemaining <= 7 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-orange-900 mb-2">Trial Ending Soon</h4>
+              <p className="text-sm text-orange-700 mb-4">
+                Your free trial will end in {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''}. Upgrade to a paid plan to continue using Platrr Business.
+              </p>
+              <button className="inline-block bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plans Info */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Our Plans</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border-2 border-gray-200 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 mb-2">Starter</h4>
+            <p className="text-2xl font-bold text-gray-900 mb-4">$29<span className="text-sm text-gray-500">/month</span></p>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>✓ Up to 10 staff members</li>
+              <li>✓ Basic inventory management</li>
+              <li>✓ Email support</li>
+            </ul>
+          </div>
+          <div className="border-2 border-orange-500 rounded-lg p-6 bg-orange-50">
+            <div className="text-orange-600 text-sm font-semibold mb-2">MOST POPULAR</div>
+            <h4 className="font-semibold text-gray-900 mb-2">Professional</h4>
+            <p className="text-2xl font-bold text-gray-900 mb-4">$79<span className="text-sm text-gray-500">/month</span></p>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>✓ Unlimited staff</li>
+              <li>✓ Advanced analytics</li>
+              <li>✓ Priority support</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
   const renderSecurityTab = () => (
     <div className="space-y-6">
-      {/* Change Password */}
-      <div className="space-y-4 max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Change Password</h3>
-        {['currentPassword','newPassword'].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {field === 'currentPassword' ? 'Current Password' : 'New Password'}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Current Password
             </label>
             <div className="relative">
               <input
-                type={field === 'currentPassword' ? (showCurrentPassword ? 'text' : 'password') : (showNewPassword ? 'text' : 'password')}
-                value={passwordData[field as keyof typeof passwordData]}
-                onChange={(e) => setPasswordData({ ...passwordData, [field]: e.target.value })}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={passwordData.currentPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter current password"
               />
               <button
                 type="button"
-                onClick={() => field === 'currentPassword' ? setShowCurrentPassword(!showCurrentPassword) : setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
               >
-                {field === 'currentPassword' ? (showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />) : (showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />)}
+                {showCurrentPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
-        ))}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
-          <input
-            type="password"
-            value={passwordData.confirmPassword}
-            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
-          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+            <div className="relative">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, newPassword: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter new password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="Confirm new password"
+            />
+          </div>
         </div>
-        <button onClick={handleChangePassword} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-          <Shield className="h-4 w-4" />
-          <span>Change Password</span>
+        <button
+          onClick={handleChangePassword}
+          className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 w-full sm:w-auto"
+        >
+          <Save className="h-4 w-4" />
+          Update Password
         </button>
       </div>
 
-      {/* Data Management */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Data Management</h3>
-        {[
-          { title: 'Export Data', desc: 'Download all your restaurant data', color: 'bg-blue-500', icon: Download },
-          { title: 'Import Data', desc: 'Import data from another system', color: 'bg-green-500', icon: Upload }
-        ].map((item) => (
-          <div key={item.title} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">{item.title}</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</p>
-            </div>
-            <button className={`${item.color} hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2`}>
-              <item.icon className="h-4 w-4" />
-              <span>{item.title.split(' ')[0]}</span>
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderBillingTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Plan</h3>
-      <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-lg font-semibold text-orange-900 dark:text-orange-400">Business Enterprise</h4>
-            <p className="text-orange-700 dark:text-orange-300">£9.99/month • All features included</p>
-            <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">Trial ends in 23 days</p>
-          </div>
-          <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium">Upgrade Now</button>
-        </div>
-      </div>
-
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Billing History</h3>
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              {['Date','Description','Amount','Status'].map((col) => (
-                <th key={col} className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr>
-              <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">Jan 15, 2025</td>
-              <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">Free Trial Started</td>
-              <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">£0.00</td>
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">Active</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      {/* Logout */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session</h3>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 w-full sm:w-auto"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage your account and restaurant preferences</p>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-gray-200">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <nav className="space-y-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+      {/* Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Tabs - Mobile: Dropdown, Desktop: Sidebar */}
+          <div className="lg:col-span-1">
+            {/* Mobile Dropdown */}
+            <div className="lg:hidden mb-6">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                {tabs.map((tab) => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Content */}
-        <div className="lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-            {activeTab === 'profile' && renderProfileTab()}
-            {activeTab === 'business' && renderBusinessTab()}
-            {activeTab === 'notifications' && renderNotificationsTab()}
-            {activeTab === 'security' && renderSecurityTab()}
-            {activeTab === 'billing' && renderBillingTab()}
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:flex flex-col space-y-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-orange-100 text-orange-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white">
+              {activeTab === 'profile' && renderProfileTab()}
+              {activeTab === 'notifications' && renderNotificationsTab()}
+              {activeTab === 'billing' && renderBillingTab()}
+              {activeTab === 'security' && renderSecurityTab()}
+            </div>
           </div>
         </div>
       </div>

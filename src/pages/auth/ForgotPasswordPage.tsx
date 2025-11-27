@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChefHat, Mail, ArrowLeft } from 'lucide-react';
-import { useToast } from '../../contexts/ToastContext';
+import toast from 'react-hot-toast';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { success, error } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,9 +16,9 @@ const ForgotPasswordPage: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSubmitted(true);
-      success('Reset email sent!', 'Check your email for password reset instructions.');
+      toast.success('Check your email for password reset instructions.');
     } catch (err) {
-      error('Failed to send reset email', 'Please try again or contact support.');
+      toast.error('Please try again or contact support.');
     } finally {
       setIsLoading(false);
     }

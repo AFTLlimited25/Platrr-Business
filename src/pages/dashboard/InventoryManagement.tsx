@@ -3,7 +3,7 @@ import { Package, Plus, Search, Edit as EditIcon, Trash2, TrendingDown, Calendar
 import { collection, doc, onSnapshot, addDoc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../firebase';
-import { useToast } from '../../contexts/ToastContext';
+import toast from 'react-hot-toast';
 
 interface InventoryItem {
   id: string;
@@ -28,7 +28,6 @@ const InventoryManagement: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: keyof InventoryItem; direction: 'asc' | 'desc' } | null>(null);
-  const { success, error } = useToast();
 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -56,7 +55,7 @@ const InventoryManagement: React.FC = () => {
           setInventory(items);
         }, (err) => {
           console.error('Inventory snapshot error', err);
-          error('Failed to load inventory', err.message || String(err));
+          toast.error(err.message || String(err));
         });
         return () => unsubInv();
       } else {
@@ -108,11 +107,11 @@ const InventoryManagement: React.FC = () => {
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.category || !newItem.currentStock || !newItem.minStock) {
-      error('Missing fields', 'Please fill in all required fields.');
+      toast.error('Please fill in all required fields.');
       return;
     }
     if (!userId) {
-      error('Not authenticated', 'You must be signed in to add inventory items.');
+      toast.error('You must be signed in to add inventory items.');
       return;
     }
 
@@ -138,10 +137,10 @@ const InventoryManagement: React.FC = () => {
         await addDoc(colRef, itemData as any);
         setNewItem({ name: '', category: '', currentStock: '', minStock: '', maxStock: '', unit: '', costPerUnit: '', supplier: '', expiryDate: '' });
         setIsAddModalOpen(false);
-        success('Item added!', `${itemData.name} has been added to inventory.`);
+        toast.success(`${itemData.name} has been added to inventory.`);
       } catch (err: any) {
         console.error('Failed to add item', err);
-        error('Add failed', err.message || String(err));
+        toast.error(err.message || String(err));
       }
     })();
   };
@@ -149,11 +148,11 @@ const InventoryManagement: React.FC = () => {
   const handleEditItem = () => {
     if (!editingItem) return;
     if (!editingItem.name || !editingItem.category || editingItem.currentStock == null || editingItem.minStock == null) {
-      error('Missing fields', 'Please fill in all required fields.');
+      toast.error('Please fill in all required fields.');
       return;
     }
     if (!userId) {
-      error('Not authenticated', 'You must be signed in to edit inventory items.');
+      toast.error('You must be signed in to edit inventory items.');
       return;
     }
 
@@ -164,17 +163,17 @@ const InventoryManagement: React.FC = () => {
         await setDoc(docRef, { ...itemToSave });
         setIsEditModalOpen(false);
         setEditingItem(null);
-        success('Item updated!', `${itemToSave.name} has been updated.`);
+        toast.success(`${itemToSave.name} has been updated.`);
       } catch (err: any) {
         console.error('Edit failed', err);
-        error('Update failed', err.message || String(err));
+        toast.error(err.message || String(err));
       }
     })();
   };
 
   const handleDeleteItem = (id: string) => {
     if (!userId) {
-      error('Not authenticated', 'You must be signed in to delete inventory items.');
+      toast.error('You must be signed in to delete inventory items.');
       return;
     }
 
@@ -183,17 +182,17 @@ const InventoryManagement: React.FC = () => {
       try {
         const docRef = doc(db, 'users', userId, 'inventory', id);
         await deleteDoc(docRef);
-        success('Item removed', `${item?.name} has been removed from inventory.`);
+        toast.success(`${item?.name} has been removed from inventory.`);
       } catch (err: any) {
         console.error('Delete failed', err);
-        error('Delete failed', err.message || String(err));
+        toast.error(err.message || String(err));
       }
     })();
   };
 
   const handleStockChange = (id: string, change: number) => {
     if (!userId) {
-      error('Not authenticated', 'You must be signed in to update stock.');
+      toast.error('You must be signed in to update stock.');
       return;
     }
 
@@ -207,10 +206,10 @@ const InventoryManagement: React.FC = () => {
       try {
         const docRef = doc(db, 'users', userId, 'inventory', id);
         await setDoc(docRef, { ...updated });
-        success('Stock updated', `${item?.name} stock adjusted.`);
+        toast.success(`${item?.name} stock adjusted.`);
       } catch (err: any) {
         console.error('Stock update failed', err);
-        error('Stock update failed', err.message || String(err));
+        toast.error(err.message || String(err));
       }
     })();
   };

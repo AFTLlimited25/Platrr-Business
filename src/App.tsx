@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+<<<<<<< HEAD
 import { Toaster } from 'react-hot-toast';
+=======
+import { ToastProvider } from './contexts/ToastContext';
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -25,6 +29,7 @@ import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
 function App() {
+<<<<<<< HEAD
   return (
     <AuthProvider>
       <Router>
@@ -54,6 +59,46 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+=======
+  // 🔥 Forcefully ensure light mode on mount
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    document.body.style.backgroundColor = '#ffffff';
+    document.body.style.color = '#000000';
+  }, []);
+
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/staff-attendance" element={<StaffAttendancePage />} />
+            </Route>
+
+            {/* Protected Dashboard Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<DashboardHome />} />
+                <Route path="staff-management" element={<StaffManagement />} />
+                <Route path="inventory-management" element={<InventoryManagement />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
   );
 }
 

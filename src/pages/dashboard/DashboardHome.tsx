@@ -79,6 +79,7 @@ const DashboardHome: React.FC = () => {
     return () => unsubAuth();
   }, []);
 
+<<<<<<< HEAD
   if (loading) return (
     <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-screen">
       <div className="text-center">
@@ -87,6 +88,9 @@ const DashboardHome: React.FC = () => {
       </div>
     </div>
   );
+=======
+  if (loading) return <p className="text-gray-600 text-center py-10">Loading dashboard...</p>;
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
 
   const metrics = [
     {
@@ -118,9 +122,15 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
+<<<<<<< HEAD
       <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-gray-200">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1 text-sm sm:text-base">
+=======
+      <div className="sticky top-0 bg-white z-10 py-4">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
           Overview of your restaurant and staff activities
         </p>
       </div>
@@ -132,8 +142,13 @@ const DashboardHome: React.FC = () => {
           {metrics.map((metric, idx) => {
             const Icon = metric.icon;
             return (
+<<<<<<< HEAD
               <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-4">
+=======
+              <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                   <div className={`${metric.bgColor} p-2 rounded-lg`}>
                     <Icon className={`${metric.color} h-5 w-5 sm:h-6 sm:w-6`} />
                   </div>
@@ -142,9 +157,15 @@ const DashboardHome: React.FC = () => {
                     <span className="ml-1">{Math.abs(metric.change)}%</span>
                   </div>
                 </div>
+<<<<<<< HEAD
                 <div>
                   <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{metric.value}</p>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">{metric.title}</p>
+=======
+                <div className="mt-4">
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{metric.value}</p>
+                  <p className="text-sm text-gray-500">{metric.title}</p>
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                 </div>
               </div>
             );
@@ -154,6 +175,7 @@ const DashboardHome: React.FC = () => {
         {/* Recent Activity & Upcoming Shifts - Stack on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
+<<<<<<< HEAD
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h2>
@@ -166,6 +188,35 @@ const DashboardHome: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-700 font-medium truncate">{activity.description || 'Activity logged'}</p>
                       <p className="text-xs text-gray-500 mt-1">{new Date(activity.timestamp).toLocaleDateString()}</p>
+=======
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+              <button className="text-sm text-orange-500 hover:text-orange-600 font-medium transition-colors">View all</button>
+            </div>
+            <div className="space-y-4 overflow-y-auto max-h-[350px]">
+              {recentActivity.length === 0 ? (
+                <p className="text-gray-500 text-sm">No recent activity</p>
+              ) : (
+                recentActivity.map((act, i) => {
+                  const Icon =
+                    act.type === 'inventory' ? Package :
+                    act.type === 'staff' ? Users :
+                    act.type === 'order' ? CheckCircle :
+                    act.type === 'alert' ? AlertTriangle :
+                    Clock;
+                  return (
+                    <div key={i} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="p-2 bg-gray-100 rounded-full flex-shrink-0">
+                        <Icon className="text-orange-600 h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{act.message || act.action || act.description || 'No details'}</p>
+                        <p className="text-xs text-gray-500">
+                          {act.timestamp ? new Date(act.timestamp.seconds ? act.timestamp.seconds * 1000 : act.timestamp).toLocaleString() : '—'}
+                        </p>
+                      </div>
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                     </div>
                   </div>
                 ))
@@ -178,6 +229,7 @@ const DashboardHome: React.FC = () => {
           </div>
 
           {/* Upcoming Shifts */}
+<<<<<<< HEAD
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-base sm:text-lg font-semibold text-gray-900">Upcoming Shifts</h2>
@@ -191,6 +243,22 @@ const DashboardHome: React.FC = () => {
                       <p className="text-sm text-gray-700 font-medium truncate">{shift.staffName || 'Staff'}</p>
                       <p className="text-xs text-gray-500 mt-1">{shift.date} • {shift.time}</p>
                     </div>
+=======
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Shifts</h2>
+              <Calendar className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="space-y-4">
+              {upcomingShifts.length === 0 ? (
+                <p className="text-gray-500 text-sm">No upcoming shifts</p>
+              ) : (
+                upcomingShifts.map((shift, i) => (
+                  <div key={i} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">{shift.staff}</p>
+                    <p className="text-xs text-gray-500">{shift.role}</p>
+                    <p className="mt-1 text-xs text-orange-600 font-semibold">{shift.time} - {shift.date}</p>
+>>>>>>> 570bf96c769e66e1a7c8c5e5af55df0957dba255
                   </div>
                 ))
               ) : (

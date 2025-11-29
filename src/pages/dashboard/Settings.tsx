@@ -191,82 +191,101 @@ const Settings: React.FC = () => {
   const trialDaysRemaining = getTrialDaysRemaining();
   const trialPercentage = (trialDaysRemaining / 30) * 100;
 
-  const renderBillingTab = () => (
-    <div className="space-y-6">
-      {/* Trial Status */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0">
-            <CheckCircle className="h-6 w-6 text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <h4 className="font-semibold text-blue-900 mb-2">Free Trial Active</h4>
-            <p className="text-sm text-blue-700 mb-4">
-              You are currently on a 30-day free trial. Full access to all features with no credit card required.
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-900">
-                  Days Remaining: {trialDaysRemaining}
-                </span>
-                <span className="text-sm text-blue-700">{Math.round(trialPercentage)}%</span>
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all"
-                  style={{ width: `${trialPercentage}%` }}
-                ></div>
-              </div>
+const renderBillingTab = () => (
+  <div className="space-y-6">
+
+    {/* Trial Status */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0">
+          <CheckCircle className="h-6 w-6 text-blue-600" />
+        </div>
+        <div className="flex-1">
+          <h4 className="font-semibold text-blue-900 mb-2">Free Trial Active</h4>
+          <p className="text-sm text-blue-700 mb-4">
+            You are currently on a 30-day free trial. Full access to all features with no credit card required.
+          </p>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-900">
+                Days Remaining: {trialDaysRemaining}
+              </span>
+              <span className="text-sm text-blue-700">{Math.round(trialPercentage)}%</span>
+            </div>
+
+            <div className="w-full bg-blue-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all"
+                style={{ width: `${trialPercentage}%` }}
+              ></div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Upgrade Prompt */}
-      {trialDaysRemaining <= 7 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-          <div className="flex items-start gap-4">
-            <AlertCircle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-orange-900 mb-2">Trial Ending Soon</h4>
-              <p className="text-sm text-orange-700 mb-4">
-                Your free trial will end in {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''}. Upgrade to a paid plan to continue using Platrr Business.
-              </p>
-              <button className="inline-block bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
-                Upgrade Now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Plans Info */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Our Plans</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border-2 border-gray-200 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-2">Starter</h4>
-            <p className="text-2xl font-bold text-gray-900 mb-4">$29<span className="text-sm text-gray-500">/month</span></p>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li>✓ Up to 10 staff members</li>
-              <li>✓ Basic inventory management</li>
-              <li>✓ Email support</li>
-            </ul>
-          </div>
-          <div className="border-2 border-orange-500 rounded-lg p-6 bg-orange-50">
-            <div className="text-orange-600 text-sm font-semibold mb-2">MOST POPULAR</div>
-            <h4 className="font-semibold text-gray-900 mb-2">Professional</h4>
-            <p className="text-2xl font-bold text-gray-900 mb-4">$79<span className="text-sm text-gray-500">/month</span></p>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li>✓ Unlimited staff</li>
-              <li>✓ Advanced analytics</li>
-              <li>✓ Priority support</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
-  );
+
+    {/* Upgrade Prompt */}
+    {trialDaysRemaining <= 7 && (
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+        <div className="flex items-start gap-4">
+          <AlertCircle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h4 className="font-semibold text-orange-900 mb-2">Trial Ending Soon</h4>
+            <p className="text-sm text-orange-700 mb-4">
+              Your free trial will end in {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''}. 
+              Upgrade to continue using Platrr Business.
+            </p>
+            <button className="inline-block bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+              Upgrade Now
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ONE PLAN ONLY */}
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Subscription Plan</h3>
+
+      <div className="border-2 border-orange-500 rounded-xl p-6 bg-orange-50 shadow-sm">
+
+        <h4 className="font-semibold text-gray-900 mb-2">Platrr Business – Premium</h4>
+
+        <p className="text-3xl font-bold text-gray-900 mb-3">
+          ₹499 <span className="text-sm text-gray-600">/month</span>
+        </p>
+
+        <p className="text-sm text-gray-600 mb-4">
+          Full access to all features, unlimited staff, unlimited stores, and priority support.
+        </p>
+
+        <ul className="space-y-2 text-sm text-gray-700">
+         <li>✓ Unlimited staff management</li>
+<li>✓ Complete inventory control</li>
+<li>✓ Advanced analytics & reporting</li>
+<li>✓ Real-time notifications</li>
+<li>✓ Mobile app access</li>
+<li>✓ Customer support</li>
+<li>✓ Data backup & security</li>
+<li>✓ Multi-location support</li>
+<li>✓ Custom integrations</li>
+<li>✓ Training & onboarding</li>
+
+
+        </ul>
+
+        <button className="mt-6 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium w-full sm:w-auto">
+          Subscribe Now
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+);
+
 
   const renderSecurityTab = () => (
     <div className="space-y-6">

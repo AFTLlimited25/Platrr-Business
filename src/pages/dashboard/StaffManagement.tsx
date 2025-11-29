@@ -197,18 +197,22 @@ const StaffManagement: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
-          <div className="sm:w-48 w-full">
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">All Roles</option>
-              {roles.map((role) => (
-                <option key={role} value={role}>{role}</option>
-              ))}
-            </select>
-          </div>
+         <div className="w-full sm:w-48 overflow-visible relative">
+
+  <select
+    value={selectedRole}
+    onChange={(e) => setSelectedRole(e.target.value)}
+    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+    rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 
+    dark:bg-gray-700 dark:text-white"
+  >
+    <option value="all">All Roles</option>
+    {roles.map((role) => (
+      <option key={role} value={role}>{role}</option>
+    ))}
+  </select>
+</div>
+
         </div>
       </div>
 
@@ -251,7 +255,10 @@ const StaffManagement: React.FC = () => {
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6">
+         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl 
+w-full sm:max-w-xl lg:max-w-2xl max-h-[150vh] overflow-y-auto p-10">
+
+
             <h2 className="text-lg font-bold mb-4">Add Staff Member</h2>
             <input type="text" placeholder="Name" value={newStaff.name} onChange={(e) => setNewStaff(prev => ({ ...prev, name: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
             <input type="email" placeholder="Email" value={newStaff.email} onChange={(e) => setNewStaff(prev => ({ ...prev, email: e.target.value }))} className="w-full mb-3 px-3 py-2 border rounded" />
